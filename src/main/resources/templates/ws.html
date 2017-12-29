@@ -12,11 +12,11 @@
 <div>
     <div>
         <button id="connect" onclick="connect()">连接</button>
-        <button id="disconnect" disabled onclick="disconnect()">断开</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect()">断开</button>
     </div>
     <div id="conversationDiv">
         <label>请输入你的名字</label>
-        <input type="text" id="name">
+        <input type="text" id="name"/>
         <button id="sendName" onclick="sendName()">发送</button>
         <p id="response"></p>
     </div>
@@ -29,30 +29,31 @@
     var stompClient = null;
 
     function setConnected(connected) {
-        if (connected) {
-            $("#connect").removeAttr("disabled");
-            $("#disconnect").attr("disabled", "disabled");
-            $("#conversationDiv").show();
-        } else {
-            $("#connect").attr("disabled", "disabled");
-            $("#disconnect").removeAttr("disabled");
-            $("#conversationDiv").hidden();
-        }
-        $("#response").html(connected);
+        console.log(connected)
+        // if (connected) {
+        //     $("#connect").removeAttr("disabled");
+        //     $("#disconnect").attr("disabled", "disabled");
+        //     $("#conversationDiv").show();
+        // } else {
+        //     $("#connect").attr("disabled", "disabled");
+        //     $("#disconnect").removeAttr("disabled");
+        //     $("#conversationDiv").hide();
+        // }
+        document.getElementById("connect").disabled = connected;
+        document.getElementById("disconnect").disabled = !connected;
+        document.getElementById("conversationDiv").style.visibility = connected ? 'visible' : "hidden";
+        $("#response").html();
     }
 
-    function showResponse(message) {
-        $("#response").html(message);
-    }
 
     function connect() {
         var socket = new SockJS("/endpointSteven");
-        stompClient = Stomp.over(socket)
+        stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
-            setConnected(true)
+            setConnected(true);
             console.log("connected" + frame);
             stompClient.subscribe("/topic/getResponse", function (res) {
-                showResponse(res);
+                showResponse(JSON.parse(res.body).responseMessage);
             });
         });
     }
@@ -67,6 +68,11 @@
     function sendName() {
         var name = $("#name").val();
         stompClient.send("/welcome", {}, JSON.stringify({"name": name}));
+    }
+
+
+    function showResponse(message) {
+        $("#response").html(message);
     }
 </script>
 </html>

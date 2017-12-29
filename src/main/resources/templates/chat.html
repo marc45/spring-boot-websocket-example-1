@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>登录页面</title>
+</head>
+<body>
+    <p>聊天室</p>
+    <form id="stevenForm">
+        <textarea rows="4" cols="60" name="text"></textarea>
+        <input type="submit" value="提交"/>
+    </form>
+</body>
+<script th:src="@{js/jquery.min.js}"></script>
+<script th:src="@{js/sockjs.min.js}"></script>
+<script th:src="@{js/stomp.min.js}"></script>
+<script th:inline="javascript">
+    $("#stevenForm").submit(function (e) {
+        e.preventDefault();
+        var text = $("#stevenForm").find("textarea[name='text']").val();
+        sendSpittle(text);
+    });
+
+    var sock = new SockJS("/endpointChat");
+    var stomp = Stomp.over(sock);
+    stomp.connect("guest", "guest", function (frame) {
+        stomp.subscribe("/user/queue/notifications", handleNotification);
+    });
+
+    function handleNotification(message) {
+        $("#output").append("<b>Received: " + message.body + "</b><br/>")
+    }
+
+    function sendSpittle(text) {
+        stomp.send("/chat", {}, text);
+    }
+
+    $("#stop").click(function () {
+        sock.close();
+    })
+</script>
+<div id="output">
+
+</div>
+<button type="button" id="stop">停止</button>
+</html>
